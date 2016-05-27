@@ -6,8 +6,11 @@
 #include<unistd.h>
 #include<netinet/in.h>
 #include<arpa/inet.h>
-
 #include"common.h"
+
+/*
+服务器端多线程，可以接受多个客户端的连接
+*/
 
 int main()
 {
@@ -43,26 +46,38 @@ int main()
 	socklen_t peerlen = sizeof(peerAddr);//peerlen一定要有初始值
 	
 	int conn;
-	conn = accept (listenfd ,(struct sockaddr *)&peerAddr,&peerlen);
-	if(conn <0)
-	{
-		err_exit("accept");
-	}
-	
-	printf("客户端的IP地址是：%s,端口号是：%d\n",
-		inet_ntoa(peerAddr.sin_addr),ntohs(peerAddr.sin_port));
-	
-	//定义一个应用层的缓冲区，用于接收数据
-	char buf[512];
 	while(1)
 	{
-		memset(buf,0,sizeof(buf));
-		int readByes = read(conn , buf , sizeof(buf));
-		fputs(buf,stdout);
-		write ( conn , buf, sizeof(buf));
-	}	
-	close(listenfd);
-	close(conn);
+		conn = accept (listenfd ,(struct sockaddr *)&peerAddr,&peerlen);
+		if(conn <0)
+		{
+			err_exit("accept");
+		}
+	
+		pid_t pid ;
+		pid  = fork();
+		if(pid == 0)  //子进程负责进行与客户端交互
+		{
+			close(listenfd); //子进程不需要监听套接字
+			printf("客户端的IP地址是：%s,端口号是：%d\n",
+			inet_ntoa(peerAddr.sin_addr),ntohs(peerAddr.sin_port));
+	
+			//定义一个应用层的缓冲区，用于接收数据
+			char buf[512];
+			while(1)
+			{
+				memset(buf,0,sizeof(buf));
+				int readByes = read(conn , buf , sizeof(buf));
+				fputs(buf,stdout);
+				write ( conn , buf, sizeof(buf));
+			}
+		}	
+		else if(pid > 0) //父进程负责监听
+		{
+			close(conn);
+		}
+		close(conn);
+	}
+	
 	return 0;
 }
-
