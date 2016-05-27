@@ -67,15 +67,18 @@ int main()
 			while(1)
 			{
 				memset(buf,0,sizeof(buf));
-				int readByes = read(conn , buf , sizeof(buf));
+				int readBytes = read(conn , buf , sizeof(buf));
+				if(readBytes==0) //说明客户端已经关闭
+				{
+					printf("clinent close\n");
+					break;	
+				}
 				fputs(buf,stdout);
 				write ( conn , buf, sizeof(buf));
 			}
+			//能够执行到这里说明客户端已经关闭
+			exit(EXIT_SUCCESS);//退出进程
 		}	
-		else if(pid > 0) //父进程负责监听
-		{
-			close(conn);
-		}
 		close(conn);
 	}
 	
