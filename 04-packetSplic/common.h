@@ -78,6 +78,71 @@ ssize_t writen(int fd, void *buf, size_t count)
 	return count;
 }
 
+/*
+从缓冲区中读取指定长度的数据，但不清楚缓冲区内容
+*/
+ssize_t read_peek(int sockfd, void *buf, size_t len )
+{
+	while(1)
+	{
+		int ret = recv (sockfd , buf ,len ,MSG_PEEK);
+		if(ret  == -1)
+		{
+			if(errno ==EINTR)  //出现中断
+				continue ;
+		}
+		return ret ;
+	}		
+}
 
+/*
+按行读取数据
+参数说明：
+	sockfd:套接字
+	buf ：应用层缓冲区，保存读取到的数据
+	maxline:所规定的一行的长度
+返回值说明：	
+*/
+ssize_t readLine (int sockfd , void *buf ,size_t maxline)
+{
+	int ret;
+	int nRead = 0;
+	int left = maxline ; //剩下的字节数
+	char * ptr = (char *) buf ; 
+	int count = 0;
+	while(true)
+	{
+		ret = read_peek ( sockfd, ptr, left);   //读取长度为left的socket缓冲区内容
+		if(ret <0)
+		{
+			return ret;
+		}
+		nRead = ret;
+		for(int i = 0;i<nRead;++i)//看看读取出来的数据中是否有换行符\n
+		{
+			if(pbuf[i]=='\n')//如果有换行符
+			{
+				ret = readn(sockfd , pbuf , i+1);//读取一行
+				if(ret != i+1)	//一定会读到i+1个字符，否则是读取出错
+				{
+					eixt(EXIT_FAILURE);	
+				}
+				return ret + count ;
+			}
+		}
+		//窥探的数据中并没有换行符
+		//把这段没有\n的读出来
+		ret = readn(sockfd , pbuf,nRead); 
+		if(ret != nRead )
+		{
+			exit(EXIT_FAILURE);	
+		}
+		pbuf += nRead;
+		left -= nRead;
+		count += nRead;	
+	}
+	return -1;
+	
+}
 #endif //__COMMON__
 
