@@ -63,6 +63,7 @@ int main()
 	
 
 	fd_set fds ;
+	FD_ZERO(&fds);
 	int maxfds ;
 	if(STDIN_FILENO >conn)	
 		maxfds = STDIN_FILENO;
@@ -71,10 +72,9 @@ int main()
 
 	while(1)
 	{
-		FD_ZERO(&fds);
         	FD_SET(STDIN_FILENO,&fds);
         	FD_SET(conn,&fds); 
-		int  nready = select(maxfds,&fds, NULL,NULL,NULL);
+		int  nready = select(maxfds+1,&fds, NULL,NULL,NULL);
 		if(nready == -1)
 			err_exit("select");
 		else if(nready == 0)
@@ -82,7 +82,6 @@ int main()
 		
 		if(FD_ISSET(STDIN_FILENO,&fds))//键盘有数据可读
 		{
-			printf("xxxxxxxxxxxxxxx");
 		
 			struct packet writebuf; 
 			memset(&writebuf,0,sizeof(writebuf));
@@ -95,7 +94,6 @@ int main()
 		}
 		if(FD_ISSET(conn,&fds)) //有数据读
 		{
-			printf("有数据读");
 			struct packet readbuf ;
 			memset(&readbuf,0,sizeof(readbuf));
                         int ret = readn(conn,&readbuf.msgLen,4); //先读取四个字节，确定后续数据的长度
