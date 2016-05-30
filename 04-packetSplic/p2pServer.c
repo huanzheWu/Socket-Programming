@@ -89,7 +89,7 @@ int main()
 			}
 			else if(ret == 0)
 			{
-				printf("peer close\n");
+				printf("peer1 close\n");
 				break;
 			}
 			
@@ -98,7 +98,7 @@ int main()
 			
 			if(readBytes == 0)
 			{
-				printf("peer close\n");
+				printf("peer2 close\n");
 				break;
 			}
 			if(readBytes<0)
@@ -109,6 +109,7 @@ int main()
 		}	
 		kill(pid,SIGUSR1);	
 		close(conn);
+		close(listenfd);
 		exit(EXIT_SUCCESS);
 	}
 	//定义一个应用层的缓冲区，用于接收数据

@@ -43,8 +43,6 @@ ssize_t readn(int fd,void *buf, size_t count)
 		}
 		if(readBytes == 0)//读到了EOF
 		{
-			//对方关闭呀
-			printf("peer close\n");
 			return count - left;
 		}	
 		left -= readBytes;
@@ -108,11 +106,11 @@ ssize_t readLine (int sockfd , void *buf ,size_t maxline)
 	int ret;
 	int nRead = 0;
 	int left = maxline ; //剩下的字节数
-	char * ptr = (char *) buf ; 
+	char * pbuf = (char *) buf ; 
 	int count = 0;
-	while(true)
+	while(1)
 	{
-		ret = read_peek ( sockfd, ptr, left);   //读取长度为left的socket缓冲区内容
+		ret = read_peek ( sockfd, pbuf, left);   //读取长度为left的socket缓冲区内容
 		if(ret <0)
 		{
 			return ret;
@@ -125,7 +123,7 @@ ssize_t readLine (int sockfd , void *buf ,size_t maxline)
 				ret = readn(sockfd , pbuf , i+1);//读取一行
 				if(ret != i+1)	//一定会读到i+1个字符，否则是读取出错
 				{
-					eixt(EXIT_FAILURE);	
+					exit(EXIT_FAILURE);	
 				}
 				return ret + count ;
 			}
@@ -145,4 +143,3 @@ ssize_t readLine (int sockfd , void *buf ,size_t maxline)
 	
 }
 #endif //__COMMON__
-
